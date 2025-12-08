@@ -1,9 +1,1 @@
-"use strict";
-const electron = require("electron");
-electron.contextBridge.exposeInMainWorld("electronAPI", {
-  setIgnoreMouseEvents: (ignore, options) => {
-    electron.ipcRenderer.send("set-ignore-mouse-events", ignore, options);
-  },
-  loadSlotsConfig: () => electron.ipcRenderer.invoke("load-slots-config"),
-  saveSlotsConfig: (data) => electron.ipcRenderer.invoke("save-slots-config", data)
-});
+"use strict";const e=require("electron");e.contextBridge.exposeInMainWorld("electronAPI",{setIgnoreMouseEvents:(o,n)=>{e.ipcRenderer.send("set-ignore-mouse-events",o,n)},loadSlotsConfig:()=>e.ipcRenderer.invoke("load-slots-config"),saveSlotsConfig:o=>e.ipcRenderer.invoke("save-slots-config",o)});

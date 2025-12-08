@@ -88,12 +88,8 @@ npm run dev
 
 ---
 
-## 打包（未完全設定）
+## 打包
 
-目前已安裝 `electron-builder`，但還沒有完整的 build script 與設定。
-
-如果之後要產生安裝檔，可以再補：
-- 在 `package.json` 加入 `build` 設定
-- 新增對應的 Windows NSIS / portable 設定
-
-（如果你需要，我可以幫你再把打包流程完整配置好。）
+```
+npm run dist
+```

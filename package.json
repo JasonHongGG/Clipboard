@@ -7,7 +7,28 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dist": "npm run build && electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.jsonhong.solarclipmanager",
+    "productName": "SolarClip Manager",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
+    }
   },
   "dependencies": {
     "lucide-react": "^0.556.0",

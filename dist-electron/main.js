@@ -1,81 +1,60 @@
-import { app, BrowserWindow, ipcMain, screen } from "electron";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import fs from "node:fs";
-const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
-process.env.DIST = path.join(__dirname$1, "../dist");
-process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(__dirname$1, "../public");
-let win;
-const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
-const SETTINGS_FILE = process.env.VITE_DEV_SERVER_URL ? path.join(__dirname$1, "..", "slots.json") : path.join(path.dirname(process.execPath), "slots.json");
-function createWindow() {
-  const { width, height } = screen.getPrimaryDisplay().bounds;
-  win = new BrowserWindow({
-    width,
-    height,
+import { app as t, BrowserWindow as p, ipcMain as d, screen as m } from "electron";
+import e from "node:path";
+import { fileURLToPath as w } from "node:url";
+import a from "node:fs";
+const l = e.dirname(w(import.meta.url));
+process.env.DIST = e.join(l, "../dist");
+process.env.VITE_PUBLIC = t.isPackaged ? process.env.DIST : e.join(l, "../public");
+let s;
+const f = process.env.VITE_DEV_SERVER_URL, i = process.env.VITE_DEV_SERVER_URL ? e.join(l, "..", "slots.json") : e.join(e.dirname(process.execPath), "slots.json");
+function u() {
+  const { width: o, height: n } = m.getPrimaryDisplay().bounds;
+  s = new p({
+    width: o,
+    height: n,
     x: 0,
     y: 0,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    transparent: true,
-    frame: false,
-    alwaysOnTop: true,
-    hasShadow: false,
-    fullscreen: false,
-    skipTaskbar: true,
+    icon: e.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    transparent: !0,
+    frame: !1,
+    alwaysOnTop: !0,
+    hasShadow: !1,
+    fullscreen: !1,
+    skipTaskbar: !0,
     webPreferences: {
-      preload: path.join(__dirname$1, "preload.mjs"),
-      nodeIntegration: false,
-      contextIsolation: true
+      preload: e.join(l, "preload.mjs"),
+      nodeIntegration: !1,
+      contextIsolation: !0
     }
-  });
-  win.setAlwaysOnTop(true, "screen-saver");
-  win.setIgnoreMouseEvents(true, { forward: true });
-  win.webContents.on("did-finish-load", () => {
-    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  });
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(path.join(process.env.DIST, "index.html"));
-  }
+  }), s.setAlwaysOnTop(!0, "screen-saver"), s.setIgnoreMouseEvents(!0, { forward: !0 }), s.webContents.on("did-finish-load", () => {
+    s == null || s.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+  }), f ? s.loadURL(f) : s.loadFile(e.join(process.env.DIST, "index.html"));
 }
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+t.on("window-all-closed", () => {
+  process.platform !== "darwin" && t.quit();
 });
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+t.on("activate", () => {
+  p.getAllWindows().length === 0 && u();
 });
-app.whenReady().then(() => {
-  createWindow();
-  ipcMain.on("set-ignore-mouse-events", (event, ignore, options) => {
-    const win2 = BrowserWindow.fromWebContents(event.sender);
-    win2 == null ? void 0 : win2.setIgnoreMouseEvents(ignore, options);
-  });
-  ipcMain.handle("load-slots-config", async () => {
+t.whenReady().then(() => {
+  u(), d.on("set-ignore-mouse-events", (o, n, r) => {
+    const c = p.fromWebContents(o.sender);
+    c == null || c.setIgnoreMouseEvents(n, r);
+  }), d.handle("load-slots-config", async () => {
     try {
-      if (!fs.existsSync(SETTINGS_FILE)) {
+      if (!a.existsSync(i))
         return null;
-      }
-      const raw = await fs.promises.readFile(SETTINGS_FILE, "utf-8");
-      return JSON.parse(raw);
-    } catch (err) {
-      console.error("Failed to load slots config:", err);
-      return null;
+      const o = await a.promises.readFile(i, "utf-8");
+      return JSON.parse(o);
+    } catch (o) {
+      return console.error("Failed to load slots config:", o), null;
     }
-  });
-  ipcMain.handle("save-slots-config", async (_event, data) => {
+  }), d.handle("save-slots-config", async (o, n) => {
     try {
-      const dir = path.dirname(SETTINGS_FILE);
-      await fs.promises.mkdir(dir, { recursive: true });
-      await fs.promises.writeFile(SETTINGS_FILE, JSON.stringify(data, null, 2), "utf-8");
-      return true;
-    } catch (err) {
-      console.error("Failed to save slots config:", err);
-      return false;
+      const r = e.dirname(i);
+      return await a.promises.mkdir(r, { recursive: !0 }), await a.promises.writeFile(i, JSON.stringify(n, null, 2), "utf-8"), !0;
+    } catch (r) {
+      return console.error("Failed to save slots config:", r), !1;
     }
   });
 });
