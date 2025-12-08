@@ -17,6 +17,7 @@ const App: React.FC = () => {
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   // Persistence
   useEffect(() => {
@@ -58,6 +59,37 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Global Hotkeys: Alt+1~5 copy slots, Insert toggle visibility
+  useEffect(() => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
+      // Alt + 1~5 => copy corresponding slot
+      if (event.altKey) {
+        const num = Number(event.key);
+        if (num >= 1 && num <= 5) {
+          event.preventDefault();
+          const slot = slots[num - 1];
+          if (slot && slot.content) {
+            try {
+              await navigator.clipboard.writeText(slot.content);
+            } catch (err) {
+              console.error('Failed to copy via hotkey:', err);
+            }
+          }
+          return;
+        }
+      }
+
+      // Insert => toggle app visibility
+      if (event.key === 'Insert') {
+        event.preventDefault();
+        setIsVisible(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [slots]);
+
   return (
     <div className={`w-full h-full relative transition-colors duration-300 ${themeMode === 'dark' ? 'dark' : ''}`}>
       
@@ -68,15 +100,17 @@ const App: React.FC = () => {
       )}
 
       {/* Main Floating Widget */}
-      <FloatingClipboard 
-        slots={slots} 
-        themeMode={themeMode}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        isSettingsOpen={isSettingsOpen}
-      />
+      {isVisible && (
+        <FloatingClipboard 
+          slots={slots} 
+          themeMode={themeMode}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          isSettingsOpen={isSettingsOpen}
+        />
+      )}
 
       {/* Settings Modal */}
-      {isSettingsOpen && (
+      {isSettingsOpen && isVisible && (
         <SettingsModal 
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
