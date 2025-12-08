@@ -23,15 +23,15 @@
       "dist/**",
       "dist-electron/**",
       "package.json",
-      "!build-assets{*/}"
+      "build/**/*"
     ],
     "win": {
       "target": [
         "portable"
       ],
-      "signAndEditExecutable": false,
+      "signAndEditExecutable": true,
       "verifyUpdateCodeSignature": false,
-      "icon": "icon.ico"
+      "icon": "./logo/dog.ico"
     }
   },
   "dependencies": {

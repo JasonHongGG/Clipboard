@@ -93,3 +93,7 @@ npm run dev
 ```
 npm run dist
 ```
+
+
+
+問題 : Icon、slots.json 儲存檔案
