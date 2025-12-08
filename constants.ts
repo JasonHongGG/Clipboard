@@ -1,0 +1,9 @@
+import { ClipboardSlot } from "./types";
+
+export const DEFAULT_SLOTS: ClipboardSlot[] = [
+  { id: 1, label: 'Record 1', content: '' },
+  { id: 2, label: 'Record 2', content: '' },
+  { id: 3, label: 'Record 3', content: '' },
+  { id: 4, label: 'Record 4', content: '' },
+  { id: 5, label: 'Record 5', content: '' },
+];

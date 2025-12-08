@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SolarClip Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              solar: {
+                yellow: '#FFD700', // Gold/Yellow
+                pale: '#FFFACD',   // LemonChiffon
+                dark: '#1a1a1a',   // Almost Black
+              }
+            },
+            cursor: {
+              'nwse-resize': 'nwse-resize',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom scrollbar for the settings panel */
+      ::-webkit-scrollbar {
+        width: 6px; /* Slightly thinner for a cleaner look */
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      /* Light Mode Default: Very subtle dark tint, barely visible */
+      ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.08);
+        border-radius: 3px;
+        transition: background 0.2s ease-in-out;
+      }
+      
+      /* Dark Mode Default: Very subtle light tint */
+      html.dark ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Hover State: Solar Yellow theme but semi-transparent, non-aggressive */
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 215, 0, 0.5);
+      }
+      html.dark ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 215, 0, 0.5);
+      }
+
+      body {
+        background-color: transparent;
+        overflow: hidden; /* Prevent body scroll since app is an overlay */
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root" class="h-screen w-screen relative overflow-hidden"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
