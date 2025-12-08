@@ -13,11 +13,11 @@ let win: BrowserWindow | null
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 // JSON 設定檔放在執行檔同一個資料夾
 const SETTINGS_FILE =
-  process.env.VITE_DEV_SERVER_URL
+  app.isPackaged
+    // 打包後：放在 resources 同一層（portable / win-unpacked 都一致）
+    ? path.join(process.resourcesPath, 'slots.json')
     // dev 模式：寫在專案根目錄（與 package.json 同一層）
-    ? path.join(__dirname, '..', 'slots.json')
-    // 打包後：寫在 exe 同資料夾
-    : path.join(path.dirname(process.execPath), 'slots.json');
+    : path.join(__dirname, '..', 'slots.json')
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().bounds
@@ -27,7 +27,7 @@ function createWindow() {
     height,
     x: 0,
     y: 0,
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    icon: path.join(__dirname, '..', 'logo', 'icon.ico'),
     transparent: true,
     frame: false,
     alwaysOnTop: true,

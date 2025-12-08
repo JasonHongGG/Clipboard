@@ -28,7 +28,8 @@
       ],
       "signAndEditExecutable": false,
       "verifyUpdateCodeSignature": false
-    }
+    },
+    "icon": "logo/icon.ico"
   },
   "dependencies": {
     "lucide-react": "^0.556.0",
