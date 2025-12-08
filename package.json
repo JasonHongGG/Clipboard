@@ -1,5 +1,7 @@
 {
   "name": "solarclip-manager",
+  "author": "jsonhong",
+  "description": "A clipboard manager application built with Electron and React",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -27,9 +29,9 @@
         "portable"
       ],
       "signAndEditExecutable": false,
-      "verifyUpdateCodeSignature": false
-    },
-    "icon": "logo/icon.ico"
+      "verifyUpdateCodeSignature": false,
+      "icon": "icon.ico"
+    }
   },
   "dependencies": {
     "lucide-react": "^0.556.0",

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen } from 'electron'
+import { app, BrowserWindow, ipcMain, screen, globalShortcut, clipboard } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
@@ -12,12 +12,11 @@ let win: BrowserWindow | null
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 // JSON 設定檔放在執行檔同一個資料夾
-const SETTINGS_FILE =
-  app.isPackaged
-    // 打包後：放在 resources 同一層（portable / win-unpacked 都一致）
-    ? path.join(process.resourcesPath, 'slots.json')
-    // dev 模式：寫在專案根目錄（與 package.json 同一層）
-    : path.join(__dirname, '..', 'slots.json')
+const SETTINGS_FILE = app.isPackaged
+  // 打包後：放在 resources 同一層（portable / 安裝版都一樣）
+  ? path.join(process.resourcesPath, 'slots.json')
+  // dev 模式：寫在專案根目錄（與 package.json 同一層）
+  : path.join(__dirname, '..', 'slots.json')
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().bounds
@@ -33,7 +32,7 @@ function createWindow() {
     alwaysOnTop: true,
     hasShadow: false,
     fullscreen: false,
-    skipTaskbar: true,
+    skipTaskbar: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       nodeIntegration: false,
@@ -42,6 +41,7 @@ function createWindow() {
   })
 
   win.setAlwaysOnTop(true, 'screen-saver')
+  win.setSkipTaskbar(false)
 
   // Make the window click-through initially (or not, depending on where the widget starts)
   // We'll start with click-through enabled for the whole window, 
@@ -66,6 +66,33 @@ function createWindow() {
   }
 }
 
+function registerGlobalShortcuts() {
+  const copyHotkeys = ['Alt+1', 'Alt+2', 'Alt+3', 'Alt+4', 'Alt+5']
+
+  copyHotkeys.forEach((accelerator, index) => {
+    const success = globalShortcut.register(accelerator, () => {
+      if (!win || win.isDestroyed()) return
+      win.webContents.send('global-hotkey', {
+        action: 'copy-slot',
+        slotIndex: index,
+      })
+    })
+
+    if (!success) {
+      console.warn(`Failed to register global shortcut ${accelerator}`)
+    }
+  })
+
+  const toggleSuccess = globalShortcut.register('Insert', () => {
+    if (!win || win.isDestroyed()) return
+    win.webContents.send('global-hotkey', { action: 'toggle-visibility' })
+  })
+
+  if (!toggleSuccess) {
+    console.warn('Failed to register global shortcut Insert')
+  }
+}
+
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
@@ -85,11 +112,19 @@ app.on('activate', () => {
 
 app.whenReady().then(() => {
   createWindow()
+  registerGlobalShortcuts()
 
   // IPC handler for toggling mouse events
   ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     win?.setIgnoreMouseEvents(ignore, options)
+  })
+
+  ipcMain.handle('copy-to-clipboard', async (_event, text: unknown) => {
+    if (typeof text === 'string') {
+      clipboard.writeText(text)
+    }
+    return true
   })
 
   // IPC: load slots config JSON
@@ -118,4 +153,8 @@ app.whenReady().then(() => {
       return false
     }
   })
+})
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
 })

@@ -33,7 +33,11 @@ export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({
         alert("This slot is empty. Set content in Settings.");
         return;
       }
-      await navigator.clipboard.writeText(content);
+      if (window.electronAPI?.copyToClipboard) {
+        await window.electronAPI.copyToClipboard(content);
+      } else {
+        await navigator.clipboard.writeText(content);
+      }
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {

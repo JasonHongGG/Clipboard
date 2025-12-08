@@ -92,6 +92,10 @@ const App: React.FC = () => {
 
   // Global Hotkeys: Alt+1~5 copy slots, Insert toggle visibility
   useEffect(() => {
+    if (window.electronAPI?.onGlobalHotkey) {
+      return;
+    }
+
     const handleKeyDown = async (event: KeyboardEvent) => {
       // Alt + 1~5 => copy corresponding slot
       if (event.altKey) {
@@ -119,6 +123,41 @@ const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [slots]);
+
+  // Electron global hotkey bridge
+  useEffect(() => {
+    if (!window.electronAPI?.onGlobalHotkey) {
+      return;
+    }
+
+    const unsubscribe = window.electronAPI.onGlobalHotkey(async (payload) => {
+      if (payload.action === 'copy-slot' && typeof payload.slotIndex === 'number') {
+        const slot = slots[payload.slotIndex];
+        if (slot?.content) {
+          try {
+            if (window.electronAPI?.copyToClipboard) {
+              await window.electronAPI.copyToClipboard(slot.content);
+            } else {
+              await navigator.clipboard.writeText(slot.content);
+            }
+          } catch (err) {
+            console.error('Failed to copy via global hotkey:', err);
+          }
+        }
+        return;
+      }
+
+      if (payload.action === 'toggle-visibility') {
+        setIsVisible((prev) => !prev);
+      }
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, [slots]);
 
   return (
