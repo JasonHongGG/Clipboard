@@ -5,4 +5,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setIgnoreMouseEvents: (ignore: boolean, options?: { forward: boolean }) => {
     ipcRenderer.send('set-ignore-mouse-events', ignore, options)
   },
+  loadSlotsConfig: () => ipcRenderer.invoke('load-slots-config'),
+  saveSlotsConfig: (data: unknown) => ipcRenderer.invoke('save-slots-config', data),
 })

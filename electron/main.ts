@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, screen } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -10,6 +11,13 @@ process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(__dirnam
 let win: BrowserWindow | null
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
+// JSON 設定檔放在執行檔同一個資料夾
+const SETTINGS_FILE =
+  process.env.VITE_DEV_SERVER_URL
+    // dev 模式：寫在專案根目錄（與 package.json 同一層）
+    ? path.join(__dirname, '..', 'slots.json')
+    // 打包後：寫在 exe 同資料夾
+    : path.join(path.dirname(process.execPath), 'slots.json');
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().bounds
@@ -82,5 +90,32 @@ app.whenReady().then(() => {
   ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     win?.setIgnoreMouseEvents(ignore, options)
+  })
+
+  // IPC: load slots config JSON
+  ipcMain.handle('load-slots-config', async () => {
+    try {
+      if (!fs.existsSync(SETTINGS_FILE)) {
+        return null
+      }
+      const raw = await fs.promises.readFile(SETTINGS_FILE, 'utf-8')
+      return JSON.parse(raw)
+    } catch (err) {
+      console.error('Failed to load slots config:', err)
+      return null
+    }
+  })
+
+  // IPC: save slots config JSON
+  ipcMain.handle('save-slots-config', async (_event, data: unknown) => {
+    try {
+      const dir = path.dirname(SETTINGS_FILE)
+      await fs.promises.mkdir(dir, { recursive: true })
+      await fs.promises.writeFile(SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf-8')
+      return true
+    } catch (err) {
+      console.error('Failed to save slots config:', err)
+      return false
+    }
   })
 })

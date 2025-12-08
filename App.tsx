@@ -6,10 +6,7 @@ import { DEFAULT_SLOTS } from './constants';
 
 const App: React.FC = () => {
   // Application State
-  const [slots, setSlots] = useState<ClipboardSlot[]>(() => {
-    const saved = localStorage.getItem('solarclip_slots');
-    return saved ? JSON.parse(saved) : DEFAULT_SLOTS;
-  });
+  const [slots, setSlots] = useState<ClipboardSlot[]>(DEFAULT_SLOTS);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('solarclip_theme');
@@ -19,9 +16,43 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
-  // Persistence
+  // Load slots from JSON config (Electron) or localStorage fallback (web)
   useEffect(() => {
-    localStorage.setItem('solarclip_slots', JSON.stringify(slots));
+    const load = async () => {
+      try {
+        if (window.electronAPI?.loadSlotsConfig) {
+          const data = await window.electronAPI.loadSlotsConfig();
+          if (Array.isArray(data)) {
+            setSlots(data as ClipboardSlot[]);
+            return;
+          }
+        }
+
+        const saved = localStorage.getItem('solarclip_slots');
+        if (saved) {
+          setSlots(JSON.parse(saved));
+        }
+      } catch (err) {
+        console.error('Failed to load slots config:', err);
+      }
+    };
+    load();
+  }, []);
+
+  // Persistence: save slots to JSON config or localStorage
+  useEffect(() => {
+    const save = async () => {
+      try {
+        if (window.electronAPI?.saveSlotsConfig) {
+          await window.electronAPI.saveSlotsConfig(slots);
+        } else {
+          localStorage.setItem('solarclip_slots', JSON.stringify(slots));
+        }
+      } catch (err) {
+        console.error('Failed to save slots config:', err);
+      }
+    };
+    save();
   }, [slots]);
 
   useEffect(() => {
