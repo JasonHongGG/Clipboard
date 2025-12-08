@@ -22,7 +22,8 @@
     "files": [
       "dist/**",
       "dist-electron/**",
-      "package.json"
+      "package.json",
+      "!build-assets{*/}"
     ],
     "win": {
       "target": [
