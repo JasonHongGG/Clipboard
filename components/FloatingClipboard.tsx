@@ -7,32 +7,39 @@ interface FloatingClipboardProps {
   themeMode: ThemeMode;
   onOpenSettings: () => void;
   isSettingsOpen: boolean;
+  onInteraction: (isActive: boolean) => void;
 }
 
-export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({ 
-  slots, 
-  themeMode, 
+export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({
+  slots,
+  themeMode,
   onOpenSettings,
-  isSettingsOpen
+  isSettingsOpen,
+  onInteraction
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
-  
+
   // Dragging State
   const [topPosition, setTopPosition] = useState(32); // Default top-8 (32px)
   const [isDragging, setIsDragging] = useState(false);
-  
+
   // Refs to track drag vs click distinction
   const dragStartY = useRef(0);
   const startTop = useRef(0);
   const hasDragged = useRef(false);
 
+  // Notify parent about interaction state changes (hover/dragging)
+  useEffect(() => {
+    // If we are dragging or expanded, we definitely need interaction
+    if (isDragging) {
+      onInteraction(true);
+    }
+  }, [isDragging, onInteraction]);
+
   const handleCopy = async (id: number, content: string) => {
     try {
-      if (!content) {
-        alert("This slot is empty. Set content in Settings.");
-        return;
-      }
+      // User requested to allow empty string copying without alert
       if (window.electronAPI?.copyToClipboard) {
         await window.electronAPI.copyToClipboard(content);
       } else {
@@ -60,7 +67,7 @@ export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const deltaY = e.clientY - dragStartY.current;
-        
+
         // Only consider it a "drag" if moved more than 3 pixels to prevent accidental micro-movements preventing clicks
         if (Math.abs(deltaY) > 3) {
           hasDragged.current = true;
@@ -97,8 +104,8 @@ export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({
 
   // Theme Classes
   // text-yellow-300 for bright yellow in dark mode
-  const containerClasses = themeMode === 'light' 
-    ? 'bg-white/95 border-solar-yellow text-solar-dark' 
+  const containerClasses = themeMode === 'light'
+    ? 'bg-white/95 border-solar-yellow text-solar-dark'
     : 'bg-black/80 border-solar-yellow/50 text-yellow-300';
 
   // Changed text-yellow-100 to text-white for buttons in Dark Mode
@@ -108,34 +115,33 @@ export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({
 
   // Config Icon Classes
   const settingsButtonClasses = themeMode === 'light'
-    ? 'hover:bg-yellow-50 text-yellow-500' 
+    ? 'hover:bg-yellow-50 text-yellow-500'
     : 'hover:bg-yellow-900/30 text-yellow-400';
 
   const handleMouseEnter = () => {
-    if (window.electronAPI) {
-      window.electronAPI.setIgnoreMouseEvents(false);
-    }
+    onInteraction(true);
   };
 
   const handleMouseLeave = () => {
-    if (window.electronAPI) {
-      window.electronAPI.setIgnoreMouseEvents(true, { forward: true });
+    // Only release interaction if we are NOT dragging
+    if (!isDragging) {
+      onInteraction(false);
     }
   };
 
   return (
-    <div 
+    <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={`fixed right-0 z-50 flex items-start transition-transform duration-75 ease-out ${isExpanded ? 'translate-x-0' : 'translate-x-[calc(100%-50px)]'}`}
-      style={{ 
+      style={{
         top: topPosition,
-        transitionProperty: isDragging ? 'none' : 'transform' 
+        transitionProperty: isDragging ? 'none' : 'transform'
       }}
     >
-      
+
       {/* Main Container Panel */}
-      <div 
+      <div
         className={`
           flex flex-row items-stretch shadow-2xl backdrop-blur-md rounded-l-2xl border-y border-l border-r-0
           transition-colors duration-300
@@ -143,51 +149,51 @@ export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({
         `}
         style={{ height: 'auto', minHeight: '80px' }}
       >
-        
+
         {/* Section 1: Unified Toggle & Drag Handle */}
-        <div 
-            className="flex flex-col w-[50px] border-r border-yellow-500/20 group cursor-grab active:cursor-grabbing"
-            onMouseDown={handleMouseDown}
-            onClick={handleToggleClick}
-            title="Click to toggle, Drag to move"
+        <div
+          className="flex flex-col w-[50px] border-r border-yellow-500/20 group cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+          onClick={handleToggleClick}
+          title="Click to toggle, Drag to move"
         >
-            <div 
+          <div
             className={`
                 flex-1 flex flex-col items-center justify-center 
                 hover:bg-yellow-500/10 transition-colors rounded-l-2xl
                 relative
             `}
-            >
-                {isExpanded ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
-            </div>
+          >
+            {isExpanded ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
+          </div>
         </div>
 
         {/* Content Area (Visible when expanded) */}
         <div className={`flex flex-row overflow-hidden transition-all duration-500 ${isExpanded ? 'w-auto opacity-100 max-w-xl' : 'w-0 opacity-0 max-w-0'}`}>
-          
+
           {/* Section 2: Copy Buttons */}
           <div className="flex flex-col p-3 gap-2 w-64 border-r border-yellow-500/20">
-             <div className={`text-xs font-bold uppercase tracking-wider mb-1 pl-1 ${themeMode === 'light' ? 'opacity-50' : 'opacity-80 text-yellow-300'}`}>
-                Quick Paste
-             </div>
-             {slots.map((slot) => (
-               <button
-                 key={slot.id}
-                 onClick={() => handleCopy(slot.id, slot.content)}
-                 className={`
+            <div className={`text-xs font-bold uppercase tracking-wider mb-1 pl-1 ${themeMode === 'light' ? 'opacity-50' : 'opacity-80 text-yellow-300'}`}>
+              Quick Paste
+            </div>
+            {slots.map((slot) => (
+              <button
+                key={slot.id}
+                onClick={() => handleCopy(slot.id, slot.content)}
+                className={`
                    flex items-center justify-between px-3 py-2 rounded-lg border shadow-sm text-sm font-medium
                    transition-all duration-200 active:scale-95
                    ${buttonClasses}
                  `}
-               >
-                 <span className="truncate max-w-[150px]">{slot.label || 'Record'}</span>
-                 {copiedId === slot.id ? (
-                   <Check size={14} className="text-green-500" />
-                 ) : (
-                   <Copy size={14} className="opacity-50" />
-                 )}
-               </button>
-             ))}
+              >
+                <span className="truncate max-w-[150px]">{slot.label || 'Record'}</span>
+                {copiedId === slot.id ? (
+                  <Check size={14} className="text-green-500" />
+                ) : (
+                  <Copy size={14} className="opacity-50" />
+                )}
+              </button>
+            ))}
           </div>
 
           {/* Section 3: Settings Trigger */}

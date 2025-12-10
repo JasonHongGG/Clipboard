@@ -1,23 +1,23 @@
 [
   {
     "id": 1,
-    "label": "Record 1",
-    "content": "123456"
+    "label": "123",
+    "content": "123"
   },
   {
     "id": 2,
     "label": "Record 2",
-    "content": "789456"
+    "content": ""
   },
   {
     "id": 3,
     "label": "Record 3",
-    "content": "852"
+    "content": ""
   },
   {
     "id": 4,
     "label": "Record 4",
-    "content": "123456789456852  852  789456  123456"
+    "content": ""
   },
   {
     "id": 5,

@@ -10,6 +10,7 @@ interface SettingsModalProps {
   slots: ClipboardSlot[];
   onUpdateSlot: (id: number, field: keyof ClipboardSlot, value: string) => void;
   onCloseApp: () => void;
+  onInteraction: (isActive: boolean) => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -19,7 +20,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleTheme,
   slots,
   onUpdateSlot,
-  onCloseApp
+  onCloseApp,
+  onInteraction
 }) => {
   // Window State
   const [position, setPosition] = useState({ x: window.innerWidth / 2 - 250, y: 100 });
@@ -29,16 +31,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [isHovering, setIsHovering] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
-  // Electron Mouse Event Logic
+  // Reporting Interaction State
   useEffect(() => {
-    if (window.electronAPI) {
-      if (isHovering || isDragging || isResizing) {
-        window.electronAPI.setIgnoreMouseEvents(false);
-      } else {
-        window.electronAPI.setIgnoreMouseEvents(true, { forward: true });
-      }
-    }
-  }, [isHovering, isDragging, isResizing]);
+    // If hovering, dragging, or resizing, we need to capture events
+    const isActive = isHovering || isDragging || isResizing;
+    onInteraction(isActive);
+
+    // Cleanup: when component unmounts or dependencies change,
+    // if it WAS active, we should probably reset it, but strictly speaking
+    // the next effect run will handle the new state. 
+    // However, specifically for UNMOUNT (closing modal), we must ensure we report false.
+    return () => {
+      onInteraction(false);
+    };
+  }, [isHovering, isDragging, isResizing, onInteraction]);
 
   // Styles based on theme
   // Updated text color for dark mode to text-yellow-300 (Bright Yellow) instead of white
@@ -65,10 +71,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   // Text Colors for visibility - Bright Yellows for Dark Mode
   const labelColor = themeMode === 'light' ? 'opacity-50' : 'text-yellow-200 opacity-80';
   const subTitleColor = themeMode === 'light' ? 'opacity-60' : 'text-yellow-400/80';
-  
+
   // Updated Note Box Class to be Yellow/Pale Yellow in both modes
-  const noteBoxClass = themeMode === 'light' 
-    ? 'bg-yellow-50 border border-yellow-300 text-yellow-900' 
+  const noteBoxClass = themeMode === 'light'
+    ? 'bg-yellow-50 border border-yellow-300 text-yellow-900'
     : 'bg-yellow-500/10 border border-yellow-500/50 text-yellow-200';
 
   // Dragging Logic
@@ -120,7 +126,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       className={`fixed shadow-2xl rounded-xl backdrop-blur-md flex flex-col overflow-hidden border-2 z-[60] ${outerBorderClass}`}
@@ -134,9 +140,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     >
       {/* Background/Theme Container */}
       <div className={`flex flex-col w-full h-full ${modalBaseClass}`}>
-        
+
         {/* Header - Draggable Area */}
-        <div 
+        <div
           className="h-14 flex items-center justify-between px-4 cursor-move select-none border-b border-yellow-500/20"
           onMouseDown={handleMouseDown}
         >
@@ -151,47 +157,47 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
-          
+
           {/* Sidebar Controls - Now Draggable */}
-          <div 
+          <div
             className="w-16 flex flex-col items-center py-6 gap-4 border-r border-yellow-500/20 cursor-move"
             onMouseDown={handleMouseDown}
           >
-             
-             {/* Spacer to push buttons to the bottom */}
-             <div className="flex-1" />
 
-             {/* Night Mode Toggle - Moved to bottom */}
-             <button 
-               onClick={onToggleTheme}
-               onMouseDown={(e) => e.stopPropagation()}
-               className="p-3 rounded-xl hover:bg-yellow-500/20 transition-all text-inherit cursor-pointer"
-               title="Toggle Night Mode"
-             >
-               {themeMode === 'light' ? <Moon size={24} /> : <Sun size={24} />}
-             </button>
+            {/* Spacer to push buttons to the bottom */}
+            <div className="flex-1" />
 
-             {/* Close Program */}
-             <button 
-               onClick={onCloseApp}
-               onMouseDown={(e) => e.stopPropagation()}
-               className="p-3 rounded-xl hover:bg-red-500 hover:text-white text-red-400 transition-all cursor-pointer"
-               title="Close Application"
-             >
-               <Power size={24} />
-             </button>
+            {/* Night Mode Toggle - Moved to bottom */}
+            <button
+              onClick={onToggleTheme}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="p-3 rounded-xl hover:bg-yellow-500/20 transition-all text-inherit cursor-pointer"
+              title="Toggle Night Mode"
+            >
+              {themeMode === 'light' ? <Moon size={24} /> : <Sun size={24} />}
+            </button>
+
+            {/* Close Program */}
+            <button
+              onClick={onCloseApp}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="p-3 rounded-xl hover:bg-red-500 hover:text-white text-red-400 transition-all cursor-pointer"
+              title="Close Application"
+            >
+              <Power size={24} />
+            </button>
           </div>
 
           {/* Form Area */}
           <div className="flex-1 p-6 overflow-y-auto">
             <h3 className={`text-sm font-bold uppercase mb-4 ${subTitleColor}`}>Manage Clipboard Slots</h3>
-            
+
             <div className="space-y-6">
               {slots.map((slot) => (
                 <div key={slot.id} className={`p-4 rounded-lg transition-colors ${slotContainerClass}`}>
                   <div className="flex items-center gap-4 mb-2">
                     <span className={`text-xs font-bold w-12 ${labelColor}`}>Slot {slot.id}</span>
-                    <input 
+                    <input
                       type="text"
                       value={slot.label}
                       onChange={(e) => onUpdateSlot(slot.id, 'label', e.target.value)}
@@ -199,7 +205,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       className={`flex-1 px-3 py-1 rounded text-sm outline-none transition-all ${inputClass}`}
                     />
                   </div>
-                  <textarea 
+                  <textarea
                     value={slot.content}
                     onChange={(e) => onUpdateSlot(slot.id, 'content', e.target.value)}
                     placeholder="Content to copy to clipboard..."
@@ -209,7 +215,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               ))}
             </div>
-            
+
             <div className={`mt-8 p-4 rounded-lg text-xs ${noteBoxClass}`}>
               <p><strong>Note:</strong> Changes are saved automatically.</p>
             </div>
@@ -217,15 +223,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Resizer Handle - Bottom Right */}
-        <div 
+        <div
           className="absolute bottom-0 right-0 w-8 h-8 cursor-nwse-resize z-50"
           onMouseDown={handleResizeDown}
         >
           {/* Diagonal Lines Visual Design */}
           <svg width="100%" height="100%" viewBox="0 0 32 32" fill="none">
-             <path d="M22 28L28 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-70" />
-             <path d="M16 28L28 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-70" />
-             <path d="M10 28L28 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-70" />
+            <path d="M22 28L28 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-70" />
+            <path d="M16 28L28 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-70" />
+            <path d="M10 28L28 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-70" />
           </svg>
         </div>
 

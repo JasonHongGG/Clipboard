@@ -31,7 +31,8 @@
       ],
       "signAndEditExecutable": true,
       "verifyUpdateCodeSignature": false,
-      "icon": "./logo/dog.ico"
+      "icon": "./logo/dog.ico",
+      "requestedExecutionLevel": "requireAdministrator"
     }
   },
   "dependencies": {

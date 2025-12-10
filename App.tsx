@@ -65,15 +65,38 @@ const App: React.FC = () => {
   }, [themeMode]);
 
   // Initial Electron Mouse Event Setup
+  // We use a Set to track multiple concurrent interaction sources (e.g. dragging widget while settings is open)
+  const [activeInteractions, setActiveInteractions] = useState<Set<string>>(new Set());
+
+  // Centralized handler for managing pass-through state
+  const handleInteraction = React.useCallback((id: string, isActive: boolean) => {
+    setActiveInteractions(prev => {
+      const next = new Set(prev);
+      if (isActive) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  }, []);
+
+  // Sync Electron window state with active interactions
   useEffect(() => {
     if (window.electronAPI) {
-      window.electronAPI.setIgnoreMouseEvents(true, { forward: true });
+      if (activeInteractions.size > 0) {
+        // If there's any active interaction, capture mouse events
+        window.electronAPI.setIgnoreMouseEvents(false);
+      } else {
+        // Otherwise, let them pass through to the background
+        window.electronAPI.setIgnoreMouseEvents(true, { forward: true });
+      }
     }
-  }, []);
+  }, [activeInteractions]);
 
   // Handlers
   const handleUpdateSlot = (id: number, field: keyof ClipboardSlot, value: string) => {
-    setSlots(prev => prev.map(slot => 
+    setSlots(prev => prev.map(slot =>
       slot.id === id ? { ...slot, [field]: value } : slot
     ));
   };
@@ -162,7 +185,7 @@ const App: React.FC = () => {
 
   return (
     <div className={`w-full h-full relative transition-colors duration-300 ${themeMode === 'dark' ? 'dark' : ''}`}>
-      
+
       {!isElectronAvailable && (
         <div className="fixed top-0 left-0 bg-red-500 text-white p-2 z-[100]">
           Error: Electron API not loaded. Check preload script.
@@ -171,17 +194,19 @@ const App: React.FC = () => {
 
       {/* Main Floating Widget */}
       {isVisible && (
-        <FloatingClipboard 
-          slots={slots} 
+        <FloatingClipboard
+          slots={slots}
           themeMode={themeMode}
           onOpenSettings={() => setIsSettingsOpen(true)}
           isSettingsOpen={isSettingsOpen}
+          // ID used for tracking this specific interaction source
+          onInteraction={(active) => handleInteraction('floating-widget', active)}
         />
       )}
 
       {/* Settings Modal */}
       {isSettingsOpen && isVisible && (
-        <SettingsModal 
+        <SettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
           themeMode={themeMode}
@@ -189,6 +214,8 @@ const App: React.FC = () => {
           slots={slots}
           onUpdateSlot={handleUpdateSlot}
           onCloseApp={handleCloseApp}
+          // ID used for tracking this specific interaction source
+          onInteraction={(active) => handleInteraction('settings-modal', active)}
         />
       )}
     </div>
