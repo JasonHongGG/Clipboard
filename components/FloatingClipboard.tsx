@@ -28,14 +28,49 @@ export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({
   const dragStartY = useRef(0);
   const startTop = useRef(0);
   const hasDragged = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Local hover state for safety check
+  const [isHovering, setIsHovering] = useState(false);
 
   // Notify parent about interaction state changes (hover/dragging)
   useEffect(() => {
-    // If we are dragging or expanded, we definitely need interaction
-    if (isDragging) {
+    // If we are dragging, expanded, or hovering, we need interaction
+    if (isDragging || isHovering) {
       onInteraction(true);
+    } else {
+      onInteraction(false);
     }
-  }, [isDragging, onInteraction]);
+  }, [isDragging, isHovering, onInteraction]);
+
+  // Safety Check: Global mouse move listener to catch cases where mouseleave is missed
+  // This happens often when the widget collapses rapidly under the cursor
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      // If dragging, we are definitely interacting
+      if (isDragging) return;
+
+      // Check if mouse is actually over our component
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const isOver =
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom;
+
+        if (!isOver && isHovering) {
+          // Force reset if we think we're hovering but we're not
+          setIsHovering(false);
+        }
+      }
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+    };
+  }, [isDragging, isHovering]);
 
   const handleCopy = async (id: number, content: string) => {
     try {
@@ -119,18 +154,19 @@ export const FloatingClipboard: React.FC<FloatingClipboardProps> = ({
     : 'hover:bg-yellow-900/30 text-yellow-400';
 
   const handleMouseEnter = () => {
-    onInteraction(true);
+    setIsHovering(true);
   };
 
   const handleMouseLeave = () => {
     // Only release interaction if we are NOT dragging
     if (!isDragging) {
-      onInteraction(false);
+      setIsHovering(false);
     }
   };
 
   return (
     <div
+      ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={`fixed right-0 z-50 flex items-start transition-transform duration-75 ease-out ${isExpanded ? 'translate-x-0' : 'translate-x-[calc(100%-50px)]'}`}
