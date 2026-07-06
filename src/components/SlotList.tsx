@@ -18,7 +18,8 @@ export const SlotList: React.FC = () => {
           const shortcut = `Alt+${i}`;
           await register(shortcut, async (event) => {
             if (event.state === 'Pressed') {
-              const slot = slots[i - 1];
+              const currentSlots = useAppStore.getState().slots;
+              const slot = currentSlots[i - 1];
               if (slot && slot.content) {
                 await writeText(slot.content);
               }
@@ -53,7 +54,7 @@ export const SlotList: React.FC = () => {
         unregister('Insert').catch(console.error);
       }
     };
-  }, [slots]);
+  }, []);
 
   return (
     <div className="slot-list-container no-drag">
