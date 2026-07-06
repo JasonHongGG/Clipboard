@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "Clipboard",
   "version": "0.1.0",
-  "identifier": "com.jasonhong.tauri-app",
+  "identifier": "com.jasonhong.clipboard",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "SolarClip",
+        "title": "Clipboard",
         "width": 360,
         "height": 480,
         "decorations": false,
