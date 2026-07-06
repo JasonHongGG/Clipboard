@@ -47,8 +47,8 @@
   --accent-glow: rgba(212, 175, 55, 0.2);
   --accent-surface: rgba(212, 175, 55, 0.1);
   
-  --border-subtle: #1e293b;
-  --border-default: #334155;
+  --border-subtle: rgba(212, 175, 55, 0.15);
+  --border-default: rgba(212, 175, 55, 0.3);
   --border-active: #d4af37;
   
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
