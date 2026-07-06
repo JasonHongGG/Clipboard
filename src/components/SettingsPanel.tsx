@@ -28,22 +28,24 @@ const SlotEditor: React.FC<{ slot: ClipboardSlot }> = ({ slot }) => {
   }, [name, content, slot.id, slot.name, slot.content, updateSlot]);
 
   return (
-    <div className="cyber-card settings-card">
-      <div className="settings-card-header">
-        <span className="cyber-badge">Alt+{slot.id}</span>
+    <div className="settings-slot-row">
+      <div className="settings-slot-header">
+        <div className="slot-shortcut-indicator">
+          <span className="font-display">{slot.id}</span>
+        </div>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="settings-input"
-          placeholder="Slot Name"
+          placeholder={`Slot ${slot.id}`}
         />
       </div>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         className="settings-textarea"
-        placeholder="Content..."
+        placeholder="Add content to this clipboard slot..."
       />
     </div>
   );
@@ -94,7 +96,7 @@ export const SettingsPanel: React.FC = () => {
           <Edit3 size={16} className="text-accent" />
           <span className="font-mono">Clipboard Slots</span>
         </div>
-        <div className="settings-slots-grid">
+        <div className="settings-slots-list">
           {slots.map(slot => (
             <SlotEditor key={slot.id} slot={slot} />
           ))}

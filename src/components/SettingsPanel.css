@@ -10,10 +10,17 @@
 .settings-body {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 16px 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
+  /* Hide scrollbar completely */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.settings-body::-webkit-scrollbar {
+  display: none;
 }
 
 .settings-section-title {
@@ -22,35 +29,43 @@
   gap: 8px;
   font-size: 14px;
   color: var(--text-secondary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.settings-slots-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+.settings-slots-list {
+  display: flex;
+  flex-direction: column;
 }
 
-.settings-card {
-  gap: 12px;
+.settings-slot-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.settings-card-header {
+.settings-slot-row:last-child {
+  border-bottom: none;
+}
+
+.settings-slot-header {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
 .settings-input {
+  flex: 1;
   background: transparent;
   border: none;
   border-bottom: 1px solid transparent;
   color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  width: 100%;
+  font-size: 15px;
+  font-weight: 600;
   outline: none;
-  padding: 4px 2px;
+  padding: 4px 0;
   transition: all 0.2s ease;
 }
 
@@ -65,23 +80,29 @@
 
 .settings-textarea {
   width: 100%;
-  height: 60px;
-  background-color: var(--bg-base);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
+  height: 64px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.5;
   resize: none;
   outline: none;
+  padding: 8px;
+  border-radius: var(--radius-sm);
   transition: all 0.2s ease;
+  /* Hide scrollbar completely */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.settings-textarea::-webkit-scrollbar {
+  display: none;
 }
 
 .settings-textarea:focus {
-  border-color: var(--border-active);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
 }
 
 .settings-textarea::placeholder {
