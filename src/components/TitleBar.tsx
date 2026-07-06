@@ -26,16 +26,16 @@ export const TitleBar: React.FC = () => {
   return (
     <div className="titlebar drag-region">
       <div className="titlebar-brand no-drag">
-        <span className="titlebar-title">SolarClip</span>
+        <span className="titlebar-title font-mono">SolarClip</span>
       </div>
       <div className="titlebar-controls no-drag">
-        <button className="titlebar-btn" onClick={openSettings} title="Settings">
+        <button className="btn-icon" onClick={openSettings} title="Settings">
           <Settings size={14} />
         </button>
-        <button className="titlebar-btn" onClick={minimizeWindow} title="Minimize">
+        <button className="btn-icon" onClick={minimizeWindow} title="Minimize">
           <Minus size={14} />
         </button>
-        <button className="titlebar-btn titlebar-btn-close" onClick={hideWindow} title="Close">
+        <button className="btn-icon titlebar-btn-close" onClick={hideWindow} title="Close">
           <X size={14} />
         </button>
       </div>

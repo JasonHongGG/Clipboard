@@ -2,23 +2,55 @@ import React, { useEffect, useState } from 'react';
 import { TitleBar } from './components/TitleBar';
 import { SlotList } from './components/SlotList';
 import { SettingsPanel } from './components/SettingsPanel';
-import { AppProvider, useAppStore } from './store';
+import { useAppStore, initStore } from './store';
 import { AnimatePresence, motion } from 'framer-motion';
 
-const AppContent: React.FC = () => {
-  const { theme } = useAppStore();
+const App: React.FC = () => {
   const [isSettingsWindow, setIsSettingsWindow] = useState(false);
 
   useEffect(() => {
-    document.documentElement.className = theme;
-  }, [theme]);
-  
-  useEffect(() => {
+    initStore();
+
     // Check if this window was opened with ?window=settings
     const params = new URLSearchParams(window.location.search);
     if (params.get('window') === 'settings') {
       setIsSettingsWindow(true);
     }
+
+    // Global Undo/Redo listener
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // If we are in an input/textarea and the event isn't prevented, it will naturally undo text
+      // However, the user explicitly asked for undo/redo of slots.
+      // We will let natural undo happen inside inputs (browser handles it).
+      // But if focus is not in an input, or if they press a custom shortcut, we can trigger global undo.
+      
+      const isInputFocused = document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA';
+      
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z') {
+          if (e.shiftKey) {
+            // Redo
+            if (!isInputFocused) {
+              e.preventDefault();
+              useAppStore.temporal.getState().redo();
+            }
+          } else {
+            // Undo
+            if (!isInputFocused) {
+              e.preventDefault();
+              useAppStore.temporal.getState().undo();
+            }
+          }
+        } else if (e.key === 'y' && !isInputFocused) {
+          // Redo alternate
+          e.preventDefault();
+          useAppStore.temporal.getState().redo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   return (
@@ -41,14 +73,6 @@ const AppContent: React.FC = () => {
         )}
       </AnimatePresence>
     </div>
-  );
-};
-
-const App: React.FC = () => {
-  return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
   );
 };
 

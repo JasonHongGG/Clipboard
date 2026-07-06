@@ -1,81 +1,59 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Colors - Light Theme (Soft, Airy, Clean) */
+  /* LIGHT THEME (Bright, Clean, Gold Accent) */
   --bg-base: #f8fafc;
-  --bg-surface: rgba(255, 255, 255, 0.7);
-  --bg-surface-solid: #ffffff;
-  --bg-surface-hover: rgba(255, 255, 255, 0.9);
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f1f5f9;
   
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
   --text-tertiary: #94a3b8;
   
-  /* Accent - Warm Golden/Yellow */
-  --accent-primary: #f59e0b; /* Amber 500 */
-  --accent-hover: #d97706; /* Amber 600 */
-  --accent-glow: rgba(245, 158, 11, 0.2);
-  --accent-surface: rgba(245, 158, 11, 0.1);
+  /* Make light mode use the exact same premium golden yellow */
+  --accent-primary: #d4af37; /* More metallic gold */
+  --accent-hover: #b8962e;
+  --accent-glow: rgba(212, 175, 55, 0.15);
+  --accent-surface: rgba(212, 175, 55, 0.08);
   
-  --danger-color: #ef4444;
-  --danger-hover: #dc2626;
+  --border-subtle: #e2e8f0;
+  --border-default: #cbd5e1;
+  --border-active: #d4af37;
   
-  /* Borders - Barely visible */
-  --border-subtle: rgba(0, 0, 0, 0.03);
-  --border-default: rgba(0, 0, 0, 0.06);
-  --border-active: rgba(245, 158, 11, 0.3);
-  
-  /* Radii */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-full: 9999px;
   
-  /* Shadows - Extremely soft and diffused */
-  --shadow-sm: 0 4px 14px 0 rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 10px -5px rgba(0, 0, 0, 0.02);
-  --shadow-glow: 0 0 20px var(--accent-glow);
-  --shadow-glass: 0 8px 32px rgba(30, 41, 59, 0.03);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
   
-  /* Transitions */
-  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Outfit', 'Inter', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'Fira Code', monospace;
 }
 
-body.dark {
-  /* Colors - Dark Theme (Deep Space, Premium) */
-  --bg-base: #0f1115;
-  --bg-surface: rgba(24, 26, 32, 0.6);
-  --bg-surface-solid: rgba(24, 26, 32, 0.9);
-  --bg-surface-hover: rgba(35, 38, 47, 0.8);
+:root.dark {
+  /* DARK THEME (Premium, Deep Space, Gold Accent based on reference) */
+  --bg-base: #080b10;
+  --bg-surface: #0f141c;
+  --bg-surface-hover: #151b26;
   
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-tertiary: #475569;
   
-  /* Accent - Vibrant Yellow */
-  --accent-primary: #fbbf24; /* Amber 400 */
-  --accent-hover: #f59e0b; /* Amber 500 */
-  --accent-glow: rgba(251, 191, 36, 0.15);
-  --accent-surface: rgba(251, 191, 36, 0.1);
+  /* Authentic Cyberpunk Gold */
+  --accent-primary: #d4af37;
+  --accent-hover: #fcd34d;
+  --accent-glow: rgba(212, 175, 55, 0.2);
+  --accent-surface: rgba(212, 175, 55, 0.1);
   
-  --danger-color: #f87171;
-  --danger-hover: #ef4444;
+  --border-subtle: #1e293b;
+  --border-default: #334155;
+  --border-active: #d4af37;
   
-  /* Borders */
-  --border-subtle: rgba(255, 255, 255, 0.03);
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-active: rgba(251, 191, 36, 0.3);
-  
-  /* Shadows */
-  --shadow-sm: 0 4px 14px 0 rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
-  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -92,13 +70,7 @@ body {
   user-select: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.5s ease, color 0.5s ease;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* App Layout */
@@ -110,7 +82,6 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
 }
 
-/* Tauri Drag Region */
 .drag-region {
   -webkit-app-region: drag;
 }
@@ -119,7 +90,7 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-app-region: no-drag;
 }
 
-/* Scrollbar */
+/* Custom Scrollbar for Cyberpunk look */
 ::-webkit-scrollbar {
   width: 4px;
 }
@@ -131,44 +102,14 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-tertiary);
-}
-
-/* Typography Utilities */
-.text-accent { color: var(--accent-primary); }
-.text-danger { color: var(--danger-color); }
-.font-display { font-family: var(--font-display); }
-
-/* Glassmorphism Panel */
-.glass-panel {
-  background: var(--bg-surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-/* Shared Buttons */
-.btn-primary {
   background-color: var(--accent-primary);
-  color: #000; /* High contrast */
-  border: none;
-  padding: 8px 20px;
-  border-radius: var(--radius-md);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all var(--transition-fast);
-  box-shadow: 0 4px 12px var(--accent-glow);
-}
-.btn-primary:hover {
-  background-color: var(--accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px var(--accent-glow);
 }
 
+/* Global Utilities */
+.text-accent { color: var(--accent-primary); }
+.font-mono { font-family: var(--font-mono); }
+
+/* Buttons & Inputs */
 .btn-icon {
   background: transparent;
   border: none;
@@ -180,10 +121,34 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 .btn-icon:hover {
   background-color: var(--bg-surface-hover);
   color: var(--text-primary);
-  transform: scale(1.05);
+}
+
+.cyber-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+.cyber-card:hover {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-sm);
+}
+
+.cyber-badge {
+  background-color: var(--accent-surface);
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(251, 191, 36, 0.2);
 }

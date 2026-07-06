@@ -1,24 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Minus, X, Moon, Sun, Save, Edit3 } from 'lucide-react';
+import { Minus, X, Moon, Sun, Edit3 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { motion } from 'framer-motion';
+import { ClipboardSlot } from '../types';
 import './SettingsPanel.css';
 import './TitleBar.css';
 
-export const SettingsPanel: React.FC = () => {
-  const { slots, theme, setTheme, updateSlot } = useAppStore();
-  const [localSlots, setLocalSlots] = useState(slots);
+const SlotEditor: React.FC<{ slot: ClipboardSlot }> = ({ slot }) => {
+  const updateSlot = useAppStore(state => state.updateSlot);
+  const [name, setName] = useState(slot.name);
+  const [content, setContent] = useState(slot.content);
 
   useEffect(() => {
-    setLocalSlots(slots);
-  }, [slots]);
+    setName(slot.name);
+    setContent(slot.content);
+  }, [slot.name, slot.content]);
 
-  const handleSave = () => {
-    localSlots.forEach(slot => {
-      updateSlot(slot.id, slot.content, slot.name);
-    });
-  };
+  // Debounce the update to store to create clean history steps
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (name !== slot.name || content !== slot.content) {
+        updateSlot(slot.id, content, name);
+      }
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [name, content, slot.id, slot.name, slot.content, updateSlot]);
+
+  return (
+    <div className="cyber-card settings-card">
+      <div className="settings-card-header">
+        <span className="cyber-badge">Alt+{slot.id}</span>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="settings-input"
+          placeholder="Slot Name"
+        />
+      </div>
+      <textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        className="settings-textarea"
+        placeholder="Content..."
+      />
+    </div>
+  );
+};
+
+export const SettingsPanel: React.FC = () => {
+  const { slots, theme, setTheme } = useAppStore();
 
   const minimizeWindow = async () => {
     await getCurrentWindow().minimize();
@@ -31,27 +63,27 @@ export const SettingsPanel: React.FC = () => {
   return (
     <motion.div 
       className="settings-panel"
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.2 }}
     >
       <div className="titlebar drag-region">
         <div className="titlebar-brand no-drag">
-          <span className="titlebar-title">Setting</span>
+          <span className="titlebar-title font-mono">Setting</span>
         </div>
         <div className="titlebar-controls no-drag">
           <button
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="titlebar-btn"
+            className="btn-icon"
             title="Toggle Theme"
           >
             {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
           </button>
-          <button className="titlebar-btn" onClick={minimizeWindow} title="Minimize">
+          <button className="btn-icon" onClick={minimizeWindow} title="Minimize">
             <Minus size={14} />
           </button>
-          <button className="titlebar-btn titlebar-btn-close" onClick={hideWindow} title="Close">
+          <button className="btn-icon" onClick={hideWindow} title="Close">
             <X size={14} />
           </button>
         </div>
@@ -60,36 +92,13 @@ export const SettingsPanel: React.FC = () => {
       <div className="settings-body">
         <div className="settings-section-title">
           <Edit3 size={16} className="text-accent" />
-          <span>Clipboard Slots</span>
+          <span className="font-mono">Clipboard Slots</span>
         </div>
         <div className="settings-slots-grid">
-          {localSlots.map(slot => (
-            <div key={slot.id} className="settings-card">
-              <div className="settings-card-header">
-                <span className="settings-badge">Alt+{slot.id}</span>
-                <input
-                  type="text"
-                  value={slot.name}
-                  onChange={(e) => setLocalSlots(prev => prev.map(s => s.id === slot.id ? { ...s, name: e.target.value } : s))}
-                  className="settings-input settings-input-title"
-                  placeholder="Slot Name"
-                />
-              </div>
-              <textarea
-                value={slot.content}
-                onChange={(e) => setLocalSlots(prev => prev.map(s => s.id === slot.id ? { ...s, content: e.target.value } : s))}
-                className="settings-textarea"
-                placeholder="Content..."
-              />
-            </div>
+          {slots.map(slot => (
+            <SlotEditor key={slot.id} slot={slot} />
           ))}
         </div>
-      </div>
-
-      <div className="settings-footer">
-        <button onClick={handleSave} className="btn-primary">
-          <Save size={16} /> Save Changes
-        </button>
       </div>
     </motion.div>
   );

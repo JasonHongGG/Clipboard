@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, MoreHorizontal } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { ClipboardSlot } from '../types';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { motion } from 'framer-motion';
@@ -25,35 +25,23 @@ export const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
 
   return (
     <motion.div 
-      className="slot-card" 
+      className={`cyber-card slot-card ${copied ? 'slot-copied' : ''}`} 
       onClick={handleCopy}
-      whileHover={{ y: -2, scale: 1.01 }}
+      whileHover={{ scale: 1.015 }}
       whileTap={{ scale: 0.98 }}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
     >
       <div className="slot-card-header">
-        <div className="slot-card-title-group">
-          <div className="slot-card-badge">Alt+{slot.id}</div>
-          <span className="slot-card-name">{slot.name}</span>
+        <div className="slot-card-meta">
+          <span className="cyber-badge">Alt+{slot.id}</span>
+          {copied && <span className="cyber-badge badge-success"><Check size={10} style={{marginRight: 4}}/>COPIED</span>}
         </div>
-        <button 
-          className={`slot-card-copy-btn ${copied ? 'copied' : ''}`} 
-          title="Copy to clipboard"
-          onClick={(e) => { e.stopPropagation(); handleCopy(); }}
-        >
-          {copied ? <Check size={16} /> : <Copy size={16} />}
-        </button>
       </div>
       <div className="slot-card-body">
-        {slot.content ? (
-          <p className="slot-card-content">{slot.content}</p>
-        ) : (
-          <div className="slot-card-empty-icon">
-            <MoreHorizontal size={18} />
-          </div>
-        )}
+        <h3 className="slot-card-name font-mono">{slot.name || `Slot ${slot.id}`}</h3>
+        {slot.content && <p className="slot-card-preview">{slot.content}</p>}
       </div>
     </motion.div>
   );

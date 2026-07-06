@@ -1,91 +1,114 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { create } from 'zustand';
+import { temporal } from 'zundo';
 import { invoke } from '@tauri-apps/api/core';
 import { ClipboardSlot, ThemeMode } from './types';
 
 interface AppState {
   slots: ClipboardSlot[];
   theme: ThemeMode;
-  isSettingsOpen: boolean;
   isVisible: boolean;
   setTheme: (theme: ThemeMode) => void;
   updateSlot: (id: number, content: string, name: string) => void;
-  toggleSettings: () => void;
+  setSlots: (slots: ClipboardSlot[]) => void;
   toggleVisibility: () => void;
-  saveSlots: (newSlots: ClipboardSlot[]) => Promise<void>;
+  setIsVisible: (visible: boolean) => void;
 }
 
-const AppContext = createContext<AppState | null>(null);
-
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [slots, setSlots] = useState<ClipboardSlot[]>([]);
-  const [theme, setThemeState] = useState<ThemeMode>('light');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-
-  // Initialize
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const loadedSlots = await invoke<ClipboardSlot[]>('get_slots');
-        setSlots(loadedSlots);
-      } catch (err) {
-        console.error('Failed to load slots:', err);
-      }
+export const useAppStore = create<AppState>()(
+  temporal(
+    (set, get) => ({
+      slots: [],
+      theme: 'dark',
+      isVisible: true,
       
-      const savedTheme = localStorage.getItem('solarclip_theme') as ThemeMode;
-      if (savedTheme) {
-        setThemeState(savedTheme);
-        document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-      }
-    };
-    init();
-  }, []);
-
-  const setTheme = (newTheme: ThemeMode) => {
-    setThemeState(newTheme);
-    localStorage.setItem('solarclip_theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
-
-  const saveSlots = async (newSlots: ClipboardSlot[]) => {
-    setSlots(newSlots);
-    try {
-      await invoke('save_slots', { slots: newSlots });
-    } catch (err) {
-      console.error('Failed to save slots:', err);
+      setTheme: (theme) => {
+        if (get().theme === theme) return;
+        set({ theme });
+        localStorage.setItem('solarclip_theme', theme);
+        document.documentElement.className = theme;
+      },
+      
+      updateSlot: (id, content, name) => {
+        const newSlots = get().slots.map(s => s.id === id ? { ...s, content, name } : s);
+        set({ slots: newSlots });
+      },
+      
+      setSlots: (slots) => set({ slots }),
+      
+      toggleVisibility: () => {
+        set(state => ({ isVisible: !state.isVisible }));
+      },
+      
+      setIsVisible: (visible) => set({ isVisible: visible }),
+    }),
+    {
+      partialize: (state) => ({ slots: state.slots }),
+      limit: 50,
     }
-  };
+  )
+);
 
-  const updateSlot = (id: number, content: string, name: string) => {
-    const newSlots = slots.map(s => s.id === id ? { ...s, content, name } : s);
-    saveSlots(newSlots);
-  };
+export const initStore = async () => {
+  const savedTheme = localStorage.getItem('solarclip_theme') as ThemeMode;
+  if (savedTheme) {
+    useAppStore.setState({ theme: savedTheme });
+    document.documentElement.className = savedTheme;
+  } else {
+    useAppStore.setState({ theme: 'dark' });
+    document.documentElement.className = 'dark';
+  }
 
-  const toggleSettings = () => setIsSettingsOpen(prev => !prev);
-  const toggleVisibility = () => setIsVisible(prev => !prev);
+  try {
+    const loadedSlots = await invoke<ClipboardSlot[]>('get_slots');
+    useAppStore.getState().setSlots(loadedSlots);
+    useAppStore.temporal.getState().clear();
+  } catch (err) {
+    console.error('Failed to load slots:', err);
+  }
 
-  // Handle Ignore cursor events (passthrough)
-  useEffect(() => {
-    const updateCursorEvents = async () => {
-      try {
-        // If not visible, ignore mouse events to pass them through
-        await invoke('set_ignore_cursor_events', { ignore: !isVisible });
-      } catch (err) {
-        console.error('Ignore cursor error:', err);
+  // Cross-window synchronization using Native HTML5 Storage Events
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'solarclip_theme' && e.newValue) {
+      const newTheme = e.newValue as ThemeMode;
+      if (useAppStore.getState().theme !== newTheme) {
+        useAppStore.setState({ theme: newTheme });
+        document.documentElement.className = newTheme;
       }
-    };
-    updateCursorEvents();
-  }, [isVisible]);
-
-  return (
-    <AppContext.Provider value={{ slots, theme, isSettingsOpen, isVisible, setTheme, updateSlot, toggleSettings, toggleVisibility, saveSlots }}>
-      {children}
-    </AppContext.Provider>
-  );
+    }
+    
+    if (e.key === 'solarclip_sync_slots' && e.newValue) {
+      const newSlotsStr = e.newValue;
+      if (JSON.stringify(useAppStore.getState().slots) !== newSlotsStr) {
+        useAppStore.temporal.getState().pause();
+        useAppStore.setState({ slots: JSON.parse(newSlotsStr) });
+        useAppStore.temporal.getState().resume();
+      }
+    }
+  });
 };
 
-export const useAppStore = () => {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useAppStore must be used within AppProvider');
-  return ctx;
-};
+let lastSavedSlotsStr = '';
+let isInitialLoad = true;
+
+useAppStore.subscribe((state, prevState) => {
+  if (state.slots !== prevState.slots) {
+    if (isInitialLoad && state.slots.length > 0) {
+      isInitialLoad = false;
+      return; 
+    }
+    const newStr = JSON.stringify(state.slots);
+    if (newStr !== lastSavedSlotsStr && state.slots.length > 0) {
+      lastSavedSlotsStr = newStr;
+      invoke('save_slots', { slots: state.slots }).then(() => {
+        // Broadcast the update to other windows via localStorage
+        localStorage.setItem('solarclip_sync_slots', newStr);
+      }).catch(console.error);
+    }
+  }
+});
+
+useAppStore.subscribe((state, prevState) => {
+  if (state.isVisible !== prevState.isVisible) {
+    invoke('set_ignore_cursor_events', { ignore: !state.isVisible }).catch(console.error);
+  }
+});
