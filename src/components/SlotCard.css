@@ -1,56 +1,124 @@
-.slot-card {
+.slot-row {
+  display: flex;
+  align-items: center;
+  height: 70px; /* Fixed height so all items are uniform */
+  box-sizing: border-box;
+  padding: 0 16px; /* Removed vertical padding since height is fixed and items are vertically centered */
+  gap: 16px;
+  border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   position: relative;
-  overflow: hidden;
-  padding: 16px 20px;
+  transition: background-color 0.15s ease;
+  background: transparent;
 }
 
-.slot-copied {
+.slot-row:hover {
+  background-color: var(--bg-surface-hover);
+}
+
+.slot-row:last-child {
+  border-bottom: none;
+}
+
+/* Empty State */
+.slot-empty {
+  opacity: 0.5;
+}
+
+.slot-empty:hover {
+  opacity: 0.8;
+}
+
+.slot-empty-text {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Shortcut Indicator */
+.slot-shortcut-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.slot-row:hover .slot-shortcut-indicator {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 15px var(--accent-glow);
+  color: var(--accent-primary);
+  background-color: var(--accent-surface);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
-.slot-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.slot-card-meta {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.badge-success {
+.slot-copied .slot-shortcut-indicator {
   background-color: rgba(16, 185, 129, 0.15);
   color: #10b981;
   border-color: rgba(16, 185, 129, 0.3);
-  display: inline-flex;
-  align-items: center;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
 }
 
-.slot-card-body {
+/* Body */
+.slot-row-body {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+  min-width: 0; /* for truncation */
 }
 
-.slot-card-name {
-  font-size: 16px;
+.slot-name {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
 }
 
-.slot-card-preview {
-  font-size: 13px;
+.slot-content-preview {
+  font-size: 12px;
   color: var(--text-secondary);
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  opacity: 0.8;
+  line-height: 1.4;
+  padding-right: 36px; /* Leave space for absolute button */
+}
+
+/* Copy Action */
+.slot-copy-action {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.slot-row:hover .slot-copy-action {
+  opacity: 1;
+}
+
+.slot-copy-action:hover {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
 }

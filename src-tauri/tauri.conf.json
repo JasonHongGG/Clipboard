@@ -15,7 +15,7 @@
         "label": "main",
         "title": "SolarClip",
         "width": 360,
-        "height": 600,
+        "height": 480,
         "decorations": false,
         "transparent": false,
         "alwaysOnTop": true,

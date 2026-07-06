@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 import { ClipboardSlot } from '../types';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { motion } from 'framer-motion';
+import { Window } from '@tauri-apps/api/window';
 import './SlotCard.css';
 
 interface SlotCardProps {
@@ -11,9 +12,10 @@ interface SlotCardProps {
 
 export const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
   const [copied, setCopied] = useState(false);
+  const isEmpty = !slot.content;
 
   const handleCopy = async () => {
-    if (!slot.content) return;
+    if (isEmpty) return;
     try {
       await writeText(slot.content);
       setCopied(true);
@@ -23,26 +25,50 @@ export const SlotCard: React.FC<SlotCardProps> = ({ slot }) => {
     }
   };
 
+  const handleEditClick = async () => {
+    if (isEmpty) {
+      try {
+        const settingsWin = new Window('settings');
+        await settingsWin.show();
+        await settingsWin.setFocus();
+      } catch (e) {
+        console.error('Failed to open settings', e);
+      }
+    } else {
+      handleCopy();
+    }
+  };
+
   return (
     <motion.div 
-      className={`cyber-card slot-card ${copied ? 'slot-copied' : ''}`} 
-      onClick={handleCopy}
-      whileHover={{ scale: 1.015 }}
-      whileTap={{ scale: 0.98 }}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      className={`slot-row ${copied ? 'slot-copied' : ''} ${isEmpty ? 'slot-empty' : ''}`} 
+      onClick={handleEditClick}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="slot-card-header">
-        <div className="slot-card-meta">
-          <span className="cyber-badge">Alt+{slot.id}</span>
-          {copied && <span className="cyber-badge badge-success"><Check size={10} style={{marginRight: 4}}/>COPIED</span>}
-        </div>
+      <div className="slot-shortcut-indicator">
+        <span className="font-display">{slot.id}</span>
       </div>
-      <div className="slot-card-body">
-        <h3 className="slot-card-name font-mono">{slot.name || `Slot ${slot.id}`}</h3>
-        {slot.content && <p className="slot-card-preview">{slot.content}</p>}
+      
+      <div className="slot-row-body">
+        <div className="slot-name font-display">{slot.name || `Slot ${slot.id}`}</div>
+        {isEmpty ? (
+          <div className="slot-empty-text">Empty - Click to add content</div>
+        ) : (
+          <div className="slot-content-preview">{slot.content}</div>
+        )}
       </div>
+
+      {!isEmpty && (
+        <button 
+          className="slot-copy-action" 
+          onClick={(e) => { e.stopPropagation(); handleCopy(); }}
+          title="Copy"
+        >
+          {copied ? <Check size={14} className="text-accent" /> : <Copy size={14} />}
+        </button>
+      )}
     </motion.div>
   );
 };
