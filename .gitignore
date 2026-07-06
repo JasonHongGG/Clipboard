@@ -22,10 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-
-/release
-/build
-/build-assets
-dist-electron/
-slots.json
