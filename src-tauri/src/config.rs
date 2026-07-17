@@ -25,7 +25,16 @@ pub fn get_slots() -> Result<Vec<ClipboardSlot>, String> {
     }
 
     match fs::read_to_string(&path) {
-        Ok(data) => serde_json::from_str(&data).map_err(|e| e.to_string()),
+        Ok(data) => {
+            let mut slots: Vec<ClipboardSlot> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+            if slots.len() < 10 {
+                let default_slots = get_default_slots();
+                for i in slots.len()..10 {
+                    slots.push(default_slots[i].clone());
+                }
+            }
+            Ok(slots)
+        },
         Err(e) => Err(e.to_string()),
     }
 }
@@ -38,7 +47,7 @@ pub fn save_slots(slots: Vec<ClipboardSlot>) -> Result<(), String> {
 }
 
 fn get_default_slots() -> Vec<ClipboardSlot> {
-    (1..=5).map(|id| ClipboardSlot {
+    (1..=10).map(|id| ClipboardSlot {
         id,
         content: String::new(),
         name: format!("Slot {}", id),

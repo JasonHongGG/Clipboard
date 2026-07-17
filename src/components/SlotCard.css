@@ -2,6 +2,7 @@
   display: flex;
   align-items: center;
   height: 70px; /* Fixed height so all items are uniform */
+  flex-shrink: 0;
   box-sizing: border-box;
   padding: 0 16px; /* Removed vertical padding since height is fixed and items are vertically centered */
   gap: 16px;

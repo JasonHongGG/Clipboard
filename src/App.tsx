@@ -4,6 +4,9 @@ import { SlotList } from './components/SlotList';
 import { SettingsPanel } from './components/SettingsPanel';
 import { useAppStore, initStore } from './store';
 import { AnimatePresence, motion } from 'framer-motion';
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { register, unregister } from '@tauri-apps/plugin-global-shortcut';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 const App: React.FC = () => {
   const [isSettingsWindow, setIsSettingsWindow] = useState(false);
@@ -50,7 +53,54 @@ const App: React.FC = () => {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    // Global Shortcuts
+    let activeShortcuts = false;
+    const setupShortcuts = async () => {
+      try {
+        for (let i = 0; i <= 9; i++) {
+          const shortcut = `Alt+${i}`;
+          await register(shortcut, async (event) => {
+            if (event.state === 'Pressed') {
+              const currentSlots = useAppStore.getState().slots;
+              // i=1..9 maps to index 0..8. i=0 maps to index 9
+              const slotIndex = i === 0 ? 9 : i - 1;
+              const slot = currentSlots[slotIndex];
+              if (slot && slot.content) {
+                await writeText(slot.content);
+              }
+            }
+          });
+        }
+        await register('Insert', async (event) => {
+          if (event.state === 'Pressed') {
+            const win = getCurrentWindow();
+            const isVisible = await win.isVisible();
+            if (isVisible) {
+              await win.hide();
+            } else {
+              await win.show();
+              await win.setFocus();
+            }
+          }
+        });
+        activeShortcuts = true;
+      } catch (e) {
+        console.error('Failed to register shortcuts:', e);
+      }
+    };
+    
+    setupShortcuts();
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (activeShortcuts) {
+        for (let i = 0; i <= 9; i++) {
+           unregister(`Alt+${i}`).catch(console.error);
+        }
+        unregister('Insert').catch(console.error);
+      }
+    };
   }, []);
 
   return (
